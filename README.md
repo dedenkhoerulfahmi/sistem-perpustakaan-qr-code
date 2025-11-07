@@ -85,4 +85,4 @@ password : superadmin
 
 ## Authors
 
-- [DedenKhoerulFahmi([https://github.com/dedenkhoerulfahmi))
+- Deden Khoerul Fahmi (https://github.com/dedenkhoerulfahmi)
