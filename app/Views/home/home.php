@@ -1,23 +1,74 @@
 <?= $this->extend('layouts/home_layout') ?>
 
 <?= $this->section('head') ?>
-<title>Home</title>
+    <title>Dashboard Perpustakaan</title>
+    <link rel="stylesheet" href="<?= base_url('assets/css/home.css'); ?>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="px-4 pt-5 my-5 text-center border-bottom">
-  <h1 class="display-4 fw-bold text-body-emphasis">Buku<span class="text-primary">Hub</span></h1>
-  <div class="col-lg-6 mx-auto">
-    <p class="lead mb-4">Temukan buku-buku menarik untuk memperluas pengetahuan dan imajinasi Anda. BukuHub adalah teman setia pencinta buku dan pembelajar di mana saja, kapan saja.</p>
-    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-5">
-      <a href="<?= base_url('login'); ?>" class="btn btn-primary btn-lg px-4 me-sm-3">Login petugas</a>
-      <a href="<?= base_url('book'); ?>" class="btn btn-outline-secondary btn-lg px-4">Daftar buku</a>
+
+<!-- 🟦 Hero Section -->
+<div class="container-fluid hero-section py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-7" data-aos="fade-right">
+                <h1 class="display-5 fw-bold mb-3">
+                    Selamat Datang di <span class="text-primary">Perpustakaan Digital<br>SMK AS-SHOFA</span>
+                </h1>
+                <p class="lead mb-4">
+                    Sistem informasi ini memudahkan pengelolaan koleksi buku dan pencarian bahan bacaan oleh siswa dan guru.
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="<?= base_url('login'); ?>" class="btn btn-warning btn-lg">
+                        <i class="bi bi-person-lock"></i> Login Petugas
+                    </a>
+                    <a href="<?= base_url('book'); ?>" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-book-half"></i> Daftar Buku
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-5 text-center mt-4 mt-md-0" data-aos="fade-left">
+                <img src="<?= base_url('assets/images/digilib-smai.png'); ?>" class="img-fluid rounded shadow" alt="Perpustakaan Digital">
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="overflow-hidden" style="max-height: 45vh;">
-    <div class="container px-5">
-      <img src="<?= base_url('assets/images/dashboard.png'); ?>" class="img-fluid border rounded-3 shadow-lg mb-4" alt="Example image" width="700" height="500" loading="lazy">
-    </div>
-  </div>
 </div>
+
+<!-- 🎨 Styles -->
+<style>
+    .stat-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+</style>
+
+<!-- ⚙️ Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+<script>
+    AOS.init();
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const counters = document.querySelectorAll('.counter');
+        counters.forEach(counter => {
+            const target = +counter.getAttribute('data-target');
+            let count = 0;
+            const increment = Math.ceil(target / 100);
+            const updateCount = () => {
+                count += increment;
+                if (count < target) {
+                    counter.innerText = count;
+                    requestAnimationFrame(updateCount);
+                } else {
+                    counter.innerText = target;
+                }
+            };
+            updateCount();
+        });
+    });
+</script>
+
 <?= $this->endSection() ?>

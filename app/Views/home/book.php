@@ -2,70 +2,71 @@
 
 <?= $this->section('head') ?>
 <title>Buku</title>
+<link rel="stylesheet" href="<?= base_url('assets/css/book.css'); ?>">
 <?= $this->endSection() ?>
 
 <?= $this->section('back'); ?>
 <a href="<?= base_url(); ?>" class="btn btn-outline-primary m-3 position-absolute">
-  <i class="ti ti-home"></i>
-  Home
+  <i class="ti ti-home"></i> Home
 </a>
 <?= $this->endSection(); ?>
 
 <?= $this->section('content') ?>
-<div class="card">
+<div class="card border-0 shadow-sm">
   <div class="card-body">
-    <div class="row mb-4">
-      <div class="col-12 col-lg-5">
-        <h5 class="card-title fw-semibold">Daftar Buku</h5>
+    
+    <!-- Header & Search -->
+    <div class="row mb-4 align-items-center">
+      <div class="col-md-6">
+        <h4 class="fw-bold mb-0">📚 Daftar Buku</h4>
+        <p class="text-muted">Temukan koleksi buku yang tersedia di perpustakaan.</p>
       </div>
-      <div class="col-12 col-lg-7">
-        <div class="d-flex gap-2 justify-content-md-end">
-          <div>
-            <form action="" method="get">
-              <div class="input-group mb-3">
-                <input type="text" class="form-control" name="search" value="<?= $search ?? ''; ?>" placeholder="Cari buku" aria-label="Cari buku" aria-describedby="searchButton">
-                <button class="btn btn-outline-secondary" type="submit" id="searchButton">Cari</button>
-              </div>
-            </form>
+      <div class="col-md-6">
+        <form action="" method="get" class="d-flex justify-content-md-end">
+          <div class="input-group">
+            <input type="text" class="form-control" name="search" value="<?= $search ?? ''; ?>" placeholder="Cari judul atau pengarang...">
+            <button class="btn btn-primary" type="submit">
+              <i class="bi bi-search"></i>
+            </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
-    <div class="row">
+
+    <!-- Book Grid -->
+    <div class="row g-4">
       <?php if (empty($books)) : ?>
-        <h4 class="text-center">Buku tidak ditemukan</h4>
+        <div class="col-12 text-center">
+          <h5 class="text-muted">Buku tidak ditemukan.</h5>
+        </div>
       <?php endif; ?>
+
       <?php foreach ($books as $book) : ?>
         <?php
-        $coverImageFilePath = BOOK_COVER_URI . $book['book_cover'];
+          $coverImageFilePath = BOOK_COVER_URI . $book['book_cover'];
+          $coverUrl = base_url((!empty($book['book_cover']) && file_exists($coverImageFilePath)) ? $coverImageFilePath : BOOK_COVER_URI . DEFAULT_BOOK_COVER);
         ?>
-        <style>
-          #coverBook<?= $book['id']; ?> {
-            background-image: url('<?= base_url((!empty($book['book_cover']) && file_exists($coverImageFilePath)) ? $coverImageFilePath : BOOK_COVER_URI . DEFAULT_BOOK_COVER); ?>');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-position: top;
-            height: 250px;
-          }
-        </style>
-        <div class="col-sm-6 col-xl-3">
-          <div class="card overflow-hidden rounded-2" style="height: 375px;">
-            <div class="position-relative">
-              <a href="<?= base_url("admin/books/{$book['slug']}"); ?>">
-                <div class="card-img-top rounded-0" id="coverBook<?= $book['id']; ?>">
-                </div>
-              </a>
+        <div class="col-6 col-md-4 col-lg-3">
+          <a href="<?= base_url("admin/books/{$book['slug']}"); ?>" class="text-decoration-none">
+            <div class="card border-0 shadow-sm book-card-small">
+              <img src="<?= $coverUrl; ?>" alt="<?= $book['title']; ?>" class="card-img-top img-fluid" style="height: 180px; object-fit: cover;">
+              <div class="card-body p-2">
+                <h6 class="fw-semibold text-dark mb-1" style="font-size: 0.95rem;">
+                  <?= substr($book['title'], 0, 48) . ((strlen($book['title']) > 48) ? '...'  : '') ?>
+                </h6>
+                <small class="text-muted">Tahun: <?= $book['year']; ?></small>
+              </div>
             </div>
-            <div class="card-body pt-3 p-4">
-              <h6 class="fw-semibold fs-4">
-                <?= substr($book['title'], 0, 64) . ((strlen($book['title']) > 64) ? '...'  : '') . " ({$book['year']})"; ?>
-              </h6>
-            </div>
-          </div>
+          </a>
         </div>
       <?php endforeach; ?>
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-4">
       <?= $pager->links('books', 'my_pager'); ?>
     </div>
+
   </div>
 </div>
 <?= $this->endSection() ?>

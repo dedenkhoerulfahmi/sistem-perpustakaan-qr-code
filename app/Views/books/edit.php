@@ -1,142 +1,119 @@
 <?= $this->extend('layouts/admin_layout') ?>
 
 <?= $this->section('head') ?>
-<title>Edit Buku</title>
+  <title>Edit Buku</title>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<a href="<?= previous_url() ?>" class="btn btn-outline-primary mb-3">
-  <i class="ti ti-arrow-left"></i>
-  Kembali
-</a>
 
-<?php if (session()->getFlashdata('msg')) : ?>
-  <div class="pb-2">
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-      <?= session()->getFlashdata('msg') ?>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  <!-- Flash Message -->
+  <?php if (session()->getFlashdata('msg')) : ?>
+    <div class="alert <?= session()->getFlashdata('error') ? 'alert-danger' : 'alert-success'; ?>">
+      <?= session()->getFlashdata('msg'); ?>
+    </div>
+  <?php endif; ?>
+
+  <!-- Validasi Error -->
+  <?php if (isset($validation)) : ?>
+    <div class="alert alert-danger"><?= $validation->listErrors(); ?></div>
+  <?php endif; ?>
+
+  <a href="<?= base_url('admin/books'); ?>" class="btn btn-outline-primary mb-3">
+    <i class="ti ti-arrow-left"></i> Kembali
+  </a>
+
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Edit Buku</h5>
+    </div>
+    <div class="card-body">
+      <form action="<?= base_url('admin/books/' . $book['id']); ?>" method="post" enctype="multipart/form-data">
+        <?= csrf_field(); ?>
+        <input type="hidden" name="_method" value="PUT">
+
+        <!-- Sampul Buku -->
+        <div class="mb-3">
+          <label for="cover" class="form-label">Sampul Buku</label>
+          <input type="file" class="form-control" id="cover" name="cover" accept="image/*">
+        </div>
+
+        <!-- Tanggal Masuk -->
+        <div class="mb-3">
+          <label for="tanggal_masuk" class="form-label">Tanggal Masuk</label>
+          <input type="date" class="form-control" id="tanggal_masuk" name="tanggal_masuk"
+            value="<?= esc($book['tanggal_masuk']); ?>" required>
+        </div>
+
+        <!-- Nomor Induk -->
+        <div class="mb-3">
+          <label for="nomor_induk" class="form-label">Nomor Induk</label>
+          <input type="text" class="form-control" id="nomor_induk" name="nomor_induk"
+            value="<?= esc($book['nomor_induk']); ?>" required>
+        </div>
+
+        <!-- Judul -->
+        <div class="mb-3">
+          <label for="title" class="form-label">Judul</label>
+          <input type="text" class="form-control" id="title" name="title"
+            value="<?= esc($book['title']); ?>" required>
+        </div>
+
+        <!-- Pengarang -->
+        <div class="mb-3">
+          <label for="author" class="form-label">Pengarang</label>
+          <input type="text" class="form-control" id="author" name="author"
+            value="<?= esc($book['author']); ?>">
+        </div>
+
+        <!-- Penerbit -->
+        <div class="mb-3">
+          <label for="publisher" class="form-label">Penerbit</label>
+          <input type="text" class="form-control" id="publisher" name="publisher"
+            value="<?= esc($book['publisher']); ?>">
+        </div>
+
+        <!-- Tahun Terbit -->
+        <div class="mb-3">
+          <label for="year" class="form-label">Tahun Terbit</label>
+          <input type="number" class="form-control" id="year" name="year"
+            value="<?= esc($book['year']); ?>">
+        </div>
+
+        <!-- Sumber -->
+        <div class="mb-3">
+          <label for="sumber" class="form-label">Sumber</label>
+          <input type="text" class="form-control" id="sumber" name="sumber"
+            value="<?= esc($book['sumber']); ?>">
+        </div>
+
+        <!-- Jumlah Stok -->
+        <div class="mb-3">
+          <label for="quantity" class="form-label">Jumlah Stok</label>
+          <input type="number" class="form-control" id="quantity" name="quantity"
+            value="<?= esc($book['quantity']); ?>" required>
+        </div>
+
+        <!-- Harga -->
+        <div class="mb-3">
+          <label for="harga" class="form-label">Harga</label>
+          <input type="number" class="form-control" id="harga" name="harga"
+            value="<?= esc($book['harga']); ?>">
+        </div>
+
+        <!-- Kondisi -->
+        <div class="mb-3">
+          <label for="kondisi" class="form-label">Kondisi</label>
+          <select class="form-select" id="kondisi" name="kondisi">
+            <option value="Baik" <?= $book['kondisi'] === 'Baik' ? 'selected' : ''; ?>>Baik</option>
+            <option value="Rusak" <?= $book['kondisi'] === 'Rusak' ? 'selected' : ''; ?>>Rusak</option>
+            <option value="Hilang" <?= $book['kondisi'] === 'Hilang' ? 'selected' : ''; ?>>Hilang</option>
+          </select>
+        </div>
+
+        <!-- Tombol Submit -->
+        <button type="submit" class="btn btn-success">Update</button>
+      </form>
     </div>
   </div>
-<?php endif; ?>
 
-<div class="card">
-  <div class="card-body">
-    <h5 class="card-title fw-semibold">Edit Buku</h5>
-    <form action="<?= base_url('admin/books/' . $book['slug']); ?>" method="post" enctype="multipart/form-data">
-      <?= csrf_field(); ?>
-      <input type="hidden" name="_method" value="PUT">
-      <div class="row">
-        <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-3 p-3">
-          <label for="cover" class="d-block" style="cursor: pointer;">
-            <div class="d-flex justify-content-center bg-light overflow-hidden h-100 position-relative">
-              <?php
-              $coverImageFilePath = BOOK_COVER_URI . $book['book_cover'];
-              ?>
-              <img id="bookCoverPreview" src="<?= base_url((!empty($book['book_cover']) && file_exists($coverImageFilePath)) ? $coverImageFilePath : BOOK_COVER_URI . DEFAULT_BOOK_COVER); ?>" alt="" height="300" class="z-1">
-            </div>
-          </label>
-        </div>
-        <div class="col-12 col-md-6 col-lg-8 col-xl-9">
-          <div class="mb-3">
-            <label for="cover" class="form-label">Gambar sampul buku</label>
-            <input class="form-control <?php if ($validation->hasError('cover')) : ?>is-invalid<?php endif ?>" type="file" id="cover" name="cover" onchange="previewImage()">
-            <div class="invalid-feedback">
-              <?= $validation->getError('cover'); ?>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label for="title" class="form-label">Judul buku</label>
-            <input type="text" class="form-control <?php if ($validation->hasError('title')) : ?>is-invalid<?php endif ?>" id="title" name="title" value="<?= $oldInput['title'] ?? $book['title']; ?>" required>
-            <div class="invalid-feedback">
-              <?= $validation->getError('title'); ?>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label for="author" class="form-label">Pengarang</label>
-            <input type="text" class="form-control <?php if ($validation->hasError('author')) : ?>is-invalid<?php endif ?>" id="author" name="author" value="<?= $oldInput['author'] ?? $book['author']; ?>" required>
-            <div class="invalid-feedback">
-              <?= $validation->getError('author'); ?>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label for="publisher" class="form-label">Penerbit</label>
-            <input type="text" class="form-control <?php if ($validation->hasError('publisher')) : ?>is-invalid<?php endif ?>" id="publisher" name="publisher" value="<?= $oldInput['publisher'] ?? $book['publisher']; ?>" required>
-            <div class="invalid-feedback">
-              <?= $validation->getError('publisher'); ?>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-12 col-md-6 mb-3">
-          <label for="isbn" class="form-label">ISBN</label>
-          <input type="number" class="form-control <?php if ($validation->hasError('isbn')) : ?>is-invalid<?php endif ?>" id="isbn" name="isbn" minlength="10" maxlength="13" aria-describedby="isbnHelp" value="<?= $oldInput['isbn'] ?? $book['isbn']; ?>" required>
-          <div id="isbnHelp" class="form-text">
-            ISBN must be 10-13 characters long, contain only numbers.
-          </div>
-          <div class="invalid-feedback">
-            <?= $validation->getError('isbn'); ?>
-          </div>
-        </div>
-        <div class="col-12 col-md-6 mb-3">
-          <label for="year" class="form-label">Tahun terbit</label>
-          <input type="number" class="form-control <?php if ($validation->hasError('year')) : ?>is-invalid<?php endif ?>" id="year" name="year" minlength="4" maxlength="4" value="<?= $oldInput['year'] ?? $book['year']; ?>" required>
-          <div class="invalid-feedback">
-            <?= $validation->getError('year'); ?>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-12 col-md-6 col-lg-4 mb-3">
-          <label for="rack" class="form-label">Rak</label>
-          <select class="form-select <?php if ($validation->hasError('rack')) : ?>is-invalid<?php endif ?>" aria-label="Select rack" id="rack" name="rack" value="<?= $oldInput['rack'] ?? $book['rack_id']; ?>" required>
-            <option>--Pilih rak--</option>
-            <?php foreach ($racks as $rack) : ?>
-              <option value="<?= $rack['id']; ?>" <?= ($oldInput['rack'] ?? $book['rack_id']) == $rack['id'] ? 'selected' : ''; ?>><?= $rack['name']; ?></option>
-            <?php endforeach; ?>
-          </select>
-          <div class="invalid-feedback">
-            <?= $validation->getError('rack'); ?>
-          </div>
-        </div>
-        <div class="col-12 col-md-6 col-lg-4 mb-3">
-          <label for="category" class="form-label">Kategori</label>
-          <select class="form-select <?php if ($validation->hasError('category')) : ?>is-invalid<?php endif ?>" aria-label="Select category" id="category" name="category" value="<?= $oldInput['category'] ?? $book['category_id']; ?>" required>
-            <option>--Pilih category--</option>
-            <?php foreach ($categories as $category) : ?>
-              <option value="<?= $category['id']; ?>" <?= ($oldInput['category'] ?? $book['category_id']) == $category['id'] ? 'selected' : ''; ?>><?= $category['name']; ?></option>
-            <?php endforeach; ?>
-          </select>
-          <div class="invalid-feedback">
-            <?= $validation->getError('category'); ?>
-          </div>
-        </div>
-        <div class="col-12 col-lg-4 mb-3">
-          <label for="stock" class="form-label">Jumlah stok buku</label>
-          <input type="number" class="form-control <?php if ($validation->hasError('stock')) : ?>is-invalid<?php endif ?>" id="stock" name="stock" value="<?= $oldInput['stock'] ?? $book['quantity']; ?>" required>
-          <div class="invalid-feedback">
-            <?= $validation->getError('stock'); ?>
-          </div>
-        </div>
-      </div>
-      <button type="submit" class="btn btn-primary">Simpan</button>
-    </form>
-  </div>
-</div>
-<?= $this->endSection() ?>
-
-<?= $this->section('scripts') ?>
-<script>
-  function previewImage() {
-    const fileInput = document.querySelector('#cover');
-    const imagePreview = document.querySelector('#bookCoverPreview');
-
-    const reader = new FileReader();
-    reader.readAsDataURL(fileInput.files[0]);
-
-    reader.onload = function(e) {
-      imagePreview.src = e.target.result;
-    };
-  }
-</script>
 <?= $this->endSection() ?>

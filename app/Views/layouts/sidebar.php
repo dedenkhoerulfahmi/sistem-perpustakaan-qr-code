@@ -43,11 +43,17 @@ $sidebarNavs =
       'link' => '/admin/categories',
       'icon' => 'ti ti-category-2'
     ],
-    [
-      'name' => 'Rak',
-      'link' => '/admin/racks',
-      'icon' => 'ti ti-columns'
-    ],
+ [
+  'name' => 'Rak',
+  'link' => '/admin/racks',
+  'icon' => 'ti ti-columns'
+],
+[
+  'name' => 'Absen Pengunjung',
+  'link' => '/admin/visitors',
+  'icon' => 'ti ti-calendar-check'
+],
+
   ];
 
 if (auth()->user()->inGroup('superadmin') ?? false) {

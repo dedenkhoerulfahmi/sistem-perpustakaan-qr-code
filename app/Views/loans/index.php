@@ -1,7 +1,7 @@
 <?= $this->extend('layouts/admin_layout') ?>
 
 <?= $this->section('head') ?>
-<title>Peminjaman</title>
+  <title>Peminjaman</title>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -30,7 +30,14 @@ if (session()->getFlashdata('msg')) : ?>
           <div>
             <form action="" method="get">
               <div class="input-group mb-3">
-                <input type="text" class="form-control" name="search" value="<?= $search ?? ''; ?>" placeholder="Cari peminjaman" aria-label="Cari peminjaman" aria-describedby="searchButton">
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  name="search" 
+                  value="<?= $search ?? ''; ?>" 
+                  placeholder="Cari peminjaman" 
+                  aria-label="Cari peminjaman" 
+                  aria-describedby="searchButton">
                 <button class="btn btn-outline-secondary" type="submit" id="searchButton">Cari</button>
               </div>
             </form>
@@ -50,7 +57,8 @@ if (session()->getFlashdata('msg')) : ?>
         <thead class="table-light">
           <tr>
             <th scope="col">#</th>
-            <th scope="col">Nama peminjam</th>
+            <th scope="col">Nama</th>
+            <th scope="col">Kelas</th>
             <th scope="col">Judul buku</th>
             <th scope="col" class="text-center">Jumlah</th>
             <th scope="col">Tgl pinjam</th>
@@ -62,45 +70,58 @@ if (session()->getFlashdata('msg')) : ?>
         <tbody class="table-group-divider">
           <?php
           $i = 1 + ($itemPerPage * ($currentPage - 1));
-
           $now = Time::now(locale: 'id');
           ?>
           <?php if (empty($loans)) : ?>
             <tr>
-              <td class="text-center" colspan="8"><b>Tidak ada data</b></td>
+              <td class="text-center" colspan="9"><b>Tidak ada data</b></td>
             </tr>
           <?php endif; ?>
-          <?php
-          foreach ($loans as $key => $loan) :
-            $loanCreateDate = Time::parse($loan['loan_date'], locale: 'id');
-            $loanDueDate = Time::parse($loan['due_date'], locale: 'id');
 
-            $isLate = $now->isAfter($loanDueDate);
-            $isDueDate = $now->today()->difference($loanDueDate)->getDays() == 0;
+          <?php foreach ($loans as $key => $loan) :
+            $loanCreateDate = Time::parse($loan['loan_date'], locale: 'id');
+            $loanDueDate    = Time::parse($loan['due_date'], locale: 'id');
           ?>
             <tr>
               <th scope="row"><?= $i++; ?></th>
+
+              <!-- Nama -->
               <td>
                 <a href="<?= base_url("admin/members/{$loan['member_uid']}"); ?>" class="text-primary-emphasis text-decoration-underline">
-                  <p>
-                    <b><?= "{$loan['first_name']} {$loan['last_name']}"; ?></b>
-                  </p>
+                  <b><?= esc($loan['first_name']); ?></b>
                 </a>
               </td>
+
+              <!-- Kelas -->
+              <td>
+                <b><?= esc($loan['kelas'] ?? '-'); ?></b>
+              </td>
+
+              <!-- Judul buku -->
               <td>
                 <a href="<?= base_url("admin/books/{$loan['slug']}"); ?>">
-                  <p class="text-primary-emphasis text-decoration-underline"><b><?= "{$loan['title']} ({$loan['year']})"; ?></b></p>
+                  <p class="text-primary-emphasis text-decoration-underline">
+                    <b><?= "{$loan['title']} ({$loan['year']})"; ?></b>
+                  </p>
                   <p class="text-body"><?= "Author: {$loan['author']}"; ?></p>
                 </a>
               </td>
+
+              <!-- Jumlah -->
               <td class="text-center"><?= $loan['quantity']; ?></td>
+
+              <!-- Tgl pinjam -->
               <td>
                 <b><?= $loanCreateDate->toLocalizedString('dd/MM/y'); ?></b><br>
                 <b><?= $loanCreateDate->toLocalizedString('HH:mm:ss'); ?></b>
               </td>
+
+              <!-- Tenggat -->
               <td>
                 <b><?= $loanDueDate->toLocalizedString('dd/MM/y'); ?></b>
               </td>
+
+              <!-- Status -->
               <td class="text-center">
                 <?php if ($now->isBefore($loanDueDate)) : ?>
                   <span class="badge bg-success rounded-3 fw-semibold">Normal</span>
@@ -110,6 +131,8 @@ if (session()->getFlashdata('msg')) : ?>
                   <span class="badge bg-danger rounded-3 fw-semibold">Terlambat</span>
                 <?php endif; ?>
               </td>
+
+              <!-- Aksi -->
               <td>
                 <a href="<?= base_url("admin/loans/{$loan['uid']}"); ?>" class="d-block btn btn-primary w-100 mb-2">
                   Detail
@@ -120,6 +143,7 @@ if (session()->getFlashdata('msg')) : ?>
         </tbody>
       </table>
     </div>
+
     <?= $pager->links('loans', 'my_pager'); ?>
   </div>
 </div>

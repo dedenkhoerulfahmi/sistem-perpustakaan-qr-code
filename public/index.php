@@ -50,6 +50,9 @@ require FCPATH . '../app/Config/Paths.php';
 
 $paths = new Config\Paths();
 
+// ✅ Set timezone agar tidak error
+date_default_timezone_set('Asia/Jakarta');
+
 // LOAD THE FRAMEWORK BOOTSTRAP FILE
 require $paths->systemDirectory . '/Boot.php';
 

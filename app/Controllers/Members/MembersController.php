@@ -22,20 +22,15 @@ class MembersController extends ResourceController
 
     public function __construct()
     {
-        $this->memberModel = new MemberModel;
-        $this->bookModel = new BookModel;
-        $this->bookStockModel = new BookStockModel;
-        $this->loanModel = new LoanModel;
-        $this->fineModel = new FineModel;
+        $this->memberModel    = new MemberModel();
+        $this->bookModel      = new BookModel();
+        $this->bookStockModel = new BookStockModel();
+        $this->loanModel      = new LoanModel();
+        $this->fineModel      = new FineModel();
 
         helper('upload');
     }
 
-    /**
-     * Return an array of resource objects, themselves in array format
-     *
-     * @return mixed
-     */
     public function index()
     {
         $itemPerPage = 20;
@@ -44,92 +39,63 @@ class MembersController extends ResourceController
             $keyword = $this->request->getGet('search');
             $members = $this->memberModel
                 ->like('first_name', $keyword, insensitiveSearch: true)
-                ->orLike('last_name', $keyword, insensitiveSearch: true)
-                ->orLike('email', $keyword, insensitiveSearch: true)
+                ->orLike('kelas', $keyword, insensitiveSearch: true)
+                ->orLike('jurusan', $keyword, insensitiveSearch: true)
+                ->orLike('nomor_induk', $keyword, insensitiveSearch: true)
                 ->paginate($itemPerPage, 'members');
 
-            $members = array_filter($members, function ($member) {
-                return $member['deleted_at'] == null;
-            });
+            $members = array_filter($members, fn($m) => $m['deleted_at'] === null);
         } else {
             $members = $this->memberModel->paginate($itemPerPage, 'members');
         }
 
-        $data = [
-            'members'           => $members,
-            'pager'             => $this->memberModel->pager,
-            'currentPage'       => $this->request->getVar('page_categories') ?? 1,
-            'itemPerPage'       => $itemPerPage,
-            'search'            => $this->request->getGet('search')
-        ];
+        $teachers = (new \App\Models\TeacherModel())->findAll();
 
-        return view('members/index', $data);
+        return view('members/index', [
+            'members'     => $members,
+            'teachers'    => $teachers,
+            'pager'       => $this->memberModel->pager,
+            'currentPage' => $this->request->getVar('page_categories') ?? 1,
+            'itemPerPage' => $itemPerPage,
+            'search'      => $this->request->getGet('search'),
+            'activeTab'   => 'siswa',
+        ]);
     }
 
-    /**
-     * Return the properties of a resource object
-     *
-     * @return mixed
-     */
     public function show($uid = null)
     {
         $member = $this->memberModel->where('uid', $uid)->first();
-
-        if (empty($member)) {
+        if (!$member) {
             throw new PageNotFoundException('Member not found');
         }
 
         $loans = $this->loanModel->where([
-            'member_id' => $member['id'],
-            'return_date' => null
+            'member_id'   => $member['id'],
+            'return_date' => null,
         ])->findAll();
 
         $fines = $this->loanModel
             ->select('loans.id, fines.amount_paid, fines.fine_amount, fines.paid_at')
             ->join('fines', 'loans.id=fines.loan_id', 'LEFT')
-            ->where('member_id', $member['id'])->findAll();
+            ->where('member_id', $member['id'])
+            ->findAll();
 
-        $totakBooksLent = empty($loans) ? 0 : array_reduce(
-            array_map(function ($loan) {
-                return $loan['quantity'];
-            }, $loans),
-            function ($carry, $item) {
-                return ($carry + $item);
-            }
+        $totalBooksLent = empty($loans)
+            ? 0
+            : array_sum(array_column($loans, 'quantity'));
+
+        $return    = array_filter($loans, fn($l) => $l['return_date'] !== null);
+        $lateLoans = array_filter($loans, fn($l) =>
+            $l['return_date'] === null && Time::now()->isAfter(Time::parse($l['due_date']))
         );
 
-        $return = array_filter($loans, function ($loan) {
-            return $loan['return_date'] != null;
-        });
-
-        $lateLoans = array_filter($loans, function ($loan) {
-            return $loan['return_date'] == null && Time::now()->isAfter(Time::parse($loan['due_date']));
-        });
-
-        $totalFines = array_reduce(
-            array_map(function ($fine) {
-                return $fine['fine_amount'];
-            }, $fines),
-            function ($carry, $item) {
-                return ($carry + $item);
-            }
-        );
-
-        $paidFines = array_reduce(
-            array_map(function ($fine) {
-                return $fine['amount_paid'];
-            }, $fines),
-            function ($carry, $item) {
-                return ($carry + $item);
-            }
-        );
-
+        $totalFines = array_sum(array_column($fines, 'fine_amount'));
+        $paidFines  = array_sum(array_column($fines, 'amount_paid'));
         $unpaidFines = $totalFines - $paidFines;
 
-        // Create qr code if not exist
         if (!file_exists(MEMBERS_QR_CODE_PATH . $member['qr_code']) || empty($member['qr_code'])) {
             $qrGenerator = new QRGenerator();
-            $qrCodeLabel = $member['first_name'] . ($member['last_name'] ? ' ' . $member['last_name'] : '');
+            $qrCodeLabel = $member['first_name'] . ($member['kelas'] ? ' ' . $member['kelas'] : '');
             $qrCode = $qrGenerator->generateQRCode(
                 $member['uid'],
                 labelText: $qrCodeLabel,
@@ -141,214 +107,201 @@ class MembersController extends ResourceController
             $member = $this->memberModel->where('uid', $uid)->first();
         }
 
-        $data = [
-            'member'            => $member,
-            'totalBooksLent'    => $totakBooksLent,
-            'loanCount'         => count($loans),
-            'returnCount'       => count($return),
-            'lateCount'         => count($lateLoans),
-            'unpaidFines'       => $unpaidFines,
-            'paidFines'         => $paidFines,
-        ];
-
-        return view('members/show', $data);
-    }
-
-    /**
-     * Return a new resource object, with default properties
-     *
-     * @return mixed
-     */
-    public function new()
-    {
-        return view('members/create', [
-            'validation' => \Config\Services::validation()
+        return view('members/show', [
+            'member'         => $member,
+            'totalBooksLent' => $totalBooksLent,
+            'loanCount'      => count($loans),
+            'returnCount'    => count($return),
+            'lateCount'      => count($lateLoans),
+            'unpaidFines'    => $unpaidFines,
+            'paidFines'      => $paidFines,
         ]);
     }
 
-    /**
-     * Create a new resource object, from "posted" parameters
-     *
-     * @return mixed
-     */
-    public function create()
-    {
-        if (!$this->validate([
-            'first_name'    => 'required|alpha_numeric_punct|max_length[100]',
-            'last_name'     => 'permit_empty|alpha_numeric_punct|max_length[100]',
-            'email'         => 'required|valid_email|max_length[255]',
-            'phone'         => 'required|alpha_numeric_punct|min_length[4]|max_length[20]',
-            'address'       => 'required|string|min_length[5]|max_length[511]',
-            'date_of_birth' => 'required|valid_date',
-            'gender'        => 'required|alpha_numeric_punct',
-        ])) {
-            $data = [
-                'validation' => \Config\Services::validation(),
-                'oldInput'   => $this->request->getVar(),
-            ];
+public function new()
+{
+    return view('members/create', [
+        'no_anggota' => $this->generateMemberNo(), // ✅ langsung pakai fungsi
+        'validation' => \Config\Services::validation(),
+        'oldInput'   => session()->getFlashdata('old') ?? [],
+    ]);
+}
 
-            return view('members/create', $data);
-        }
 
-        $uid = sha1(
-            $this->request->getVar('first_name')
-                . $this->request->getVar('email')
-                . $this->request->getVar('phone')
-                . rand(0, 1000)
-                . md5($this->request->getVar('gender'))
-        );
+public function create()
+{
+    $rules = [
+        'nomor_induk'   => 'required|alpha_numeric_punct|max_length[20]',
+        'first_name'    => 'required|alpha_numeric_punct|max_length[100]',
+        'kelas'         => 'permit_empty|alpha_numeric_punct|max_length[100]',
+        'jurusan'       => 'required|max_length[255]',
+        'phone'         => 'required|alpha_numeric_punct|min_length[4]|max_length[20]',
+        'address'       => 'required|min_length[5]|max_length[511]',
+        'gender'        => 'required|in_list[L,P]' // ✅ pakai L/P
+    ];
 
+    if (!$this->validate($rules)) {
+        session()->setFlashdata('old', $this->request->getPost());
+        session()->setFlashdata('msg', 'Validasi gagal. Periksa kembali input Anda.');
+        return $this->new();
+    }
+
+    // ✅ generate UID unik
+    $uid = sha1(
+        $this->request->getVar('first_name')
+        . $this->request->getVar('jurusan')
+        . $this->request->getVar('phone')
+        . rand(0, 1000)
+        . md5($this->request->getVar('gender'))
+    );
+
+    // ✅ generate QR Code
+    $qrGenerator = new QRGenerator();
+    $qrCodeLabel = $this->request->getVar('first_name')
+        . ($this->request->getVar('kelas') ? ' ' . $this->request->getVar('kelas') : '');
+    $qrCode = $qrGenerator->generateQRCode(
+        $uid,
+        labelText: $qrCodeLabel,
+        dir: MEMBERS_QR_CODE_PATH,
+        filename: $qrCodeLabel
+    );
+
+    // ✅ simpan ke database
+    if (!$this->memberModel->save([
+        'uid'           => $uid,
+        'member_no'     => $this->generateMemberNo(), // 🔥 langsung pakai fungsi baru
+        'nomor_induk'   => $this->request->getVar('nomor_induk'),
+        'first_name'    => $this->request->getVar('first_name'),
+        'kelas'         => $this->request->getVar('kelas'),
+        'jurusan'       => $this->request->getVar('jurusan'),
+        'phone'         => $this->request->getVar('phone'),
+        'address'       => $this->request->getVar('address'),
+        'gender'        => $this->request->getVar('gender'),
+        'qr_code'       => $qrCode,
+    ])) {
+        session()->setFlashdata('msg', 'Insert failed: ' . implode(', ', $this->memberModel->errors()));
+        session()->setFlashdata('old', $this->request->getPost());
+        return $this->new();
+    }
+
+    session()->setFlashdata(['msg' => 'Insert new member successful']);
+    return redirect()->to('admin/members');
+}
+
+
+public function edit($uid = null)
+{
+    $member = $this->memberModel->where('uid', $uid)->first();
+    if (!$member) {
+        throw new \CodeIgniter\Exceptions\PageNotFoundException('Member not found');
+    }
+
+    // Jika member_no belum ada, generate otomatis
+    if (empty($member['member_no'])) {
+        $member['member_no'] = $this->generateMemberNo();
+    }
+
+    return view('members/edit', [
+        'member'     => $member,
+        'validation' => \Config\Services::validation(),
+    ]);
+}
+
+public function update($uid = null)
+{
+    $member = $this->memberModel->where('uid', $uid)->first();
+    if (!$member) {
+        throw new \CodeIgniter\Exceptions\PageNotFoundException('Member not found');
+    }
+
+    $validationRules = [
+        'nomor_induk'   => 'required|alpha_numeric_punct|max_length[20]',
+        'first_name'    => 'required|alpha_numeric_punct|max_length[100]',
+        'kelas'         => 'permit_empty|alpha_numeric_punct|max_length[100]',
+        'jurusan'       => 'required|max_length[255]',
+        'phone'         => 'required|alpha_numeric_punct|min_length[4]|max_length[20]',
+        'address'       => 'required|min_length[5]|max_length[511]',
+        'gender'        => 'required|in_list[L,P]', // ✅ pakai L / P
+    ];
+
+    if (!$this->validate($validationRules)) {
+        session()->setFlashdata('msg', 'Validasi gagal');
+        session()->setFlashdata('old', $this->request->getPost());
+
+        return view('members/edit', [
+            'member'     => $member,
+            'validation' => $this->validator,
+            'oldInput'   => $this->request->getPost(),
+        ]);
+    }
+
+    // Ambil input
+    $input = $this->request->getPost([
+        'nomor_induk', 'first_name', 'kelas', 'jurusan',
+        'phone', 'address', 'gender'
+    ]);
+
+    // QR Code logic (jika nama/jurusan/phone berubah)
+    $isChanged = (
+        $input['first_name'] !== $member['first_name'] ||
+        $input['jurusan']    !== $member['jurusan'] ||
+        $input['phone']      !== $member['phone']
+    );
+
+    $qrCode = $member['qr_code'];
+    if ($isChanged) {
         $qrGenerator = new QRGenerator();
-        $qrCodeLabel = $this->request->getVar('first_name')
-            . ($this->request->getVar('last_name')
-                ? ' ' . $this->request->getVar('last_name') : '');
+        $qrCodeLabel = $input['first_name'] . ($input['kelas'] ? ' ' . $input['kelas'] : '');
         $qrCode = $qrGenerator->generateQRCode(
-            data: $uid,
+            $member['uid'], // ✅ tetap pakai UID lama
             labelText: $qrCodeLabel,
             dir: MEMBERS_QR_CODE_PATH,
             filename: $qrCodeLabel
         );
-
-        if (!$this->memberModel->save([
-            'uid'           => $uid,
-            'first_name'    => $this->request->getVar('first_name'),
-            'last_name'     => $this->request->getVar('last_name'),
-            'email'         => $this->request->getVar('email'),
-            'phone'         => $this->request->getVar('phone'),
-            'address'       => $this->request->getVar('address'),
-            'date_of_birth' => $this->request->getVar('date_of_birth'),
-            'gender'        => $this->request->getVar('gender'),
-            'qr_code'       => $qrCode
-        ])) {
-            $data = [
-                'validation' => \Config\Services::validation(),
-                'oldInput'   => $this->request->getVar(),
-            ];
-
-            session()->setFlashdata(['msg' => 'Insert failed']);
-            return view('members/create', $data);
-        }
-
-        session()->setFlashdata(['msg' => 'Insert new member successful']);
-        return redirect()->to('admin/members');
+        deleteMembersQRCode($member['qr_code']);
     }
 
-    /**
-     * Return the editable properties of a resource object
-     *
-     * @return mixed
-     */
-    public function edit($uid = null)
-    {
-        $member = $this->memberModel->where('uid', $uid)->first();
+    // Simpan data
+    $saveData = array_merge($input, [
+        'id'        => $member['id'],
+        'uid'       => $member['uid'], // ✅ tidak diubah
+        'member_no' => $member['member_no'] ?? $this->generateMemberNo(),
+        'qr_code'   => $qrCode,
+    ]);
 
-        if (empty($member)) {
-            throw new PageNotFoundException('Member not found');
-        }
-
-        $data = [
+    if (!$this->memberModel->save($saveData)) {
+        $errors = $this->memberModel->errors();
+        session()->setFlashdata('msg', 'Update gagal: ' . implode(', ', $errors));
+        return view('members/edit', [
             'member'     => $member,
-            'validation' => \Config\Services::validation(),
-        ];
-
-        return view('members/edit', $data);
+            'validation' => $this->validator,
+            'oldInput'   => $input,
+        ]);
     }
 
-    /**
-     * Add or update a model resource, from "posted" properties
-     *
-     * @return mixed
-     */
-    public function update($uid = null)
-    {
-        $member = $this->memberModel->where('uid', $uid)->first();
+    session()->setFlashdata('msg', 'Data anggota berhasil diperbarui');
+    return redirect()->to('admin/members');
+}
 
-        if (empty($member)) {
-            throw new PageNotFoundException('Member not found');
-        }
+private function generateMemberNo()
+{
+    $lastMember = $this->memberModel->orderBy('id', 'DESC')->first();
 
-        if (!$this->validate([
-            'first_name'    => 'required|alpha_numeric_punct|max_length[100]',
-            'last_name'     => 'permit_empty|alpha_numeric_punct|max_length[100]',
-            'email'         => 'required|valid_email|max_length[255]',
-            'phone'         => 'required|alpha_numeric_punct|min_length[4]|max_length[20]',
-            'address'       => 'required|string|min_length[5]|max_length[511]',
-            'date_of_birth' => 'required|valid_date',
-            'gender'        => 'required|alpha_numeric_punct',
-        ])) {
-            $data = [
-                'member'     => $member,
-                'validation' => \Config\Services::validation(),
-                'oldInput'   => $this->request->getVar(),
-            ];
-
-            return view('members/edit', $data);
-        }
-
-        $firstName = $this->request->getVar('first_name');
-        $email = $this->request->getVar('email');
-        $phone = $this->request->getVar('phone');
-        $gender = $this->request->getVar('gender');
-
-        $isChanged = ($firstName != $member['first_name']
-            || $email != $member['email']
-            || $phone != $member['phone']);
-
-        $uid = $isChanged
-            ? sha1($firstName . $email . $phone . rand(0, 1000) . md5($gender))
-            : $member['uid'];
-
-        if ($isChanged) {
-            $qrGenerator = new QRGenerator();
-            $qrCodeLabel = $this->request->getVar('first_name')
-                . ($this->request->getVar('last_name')
-                    ? ' ' . $this->request->getVar('last_name') : '');
-            $qrCode = $qrGenerator->generateQRCode(
-                $uid,
-                labelText: $qrCodeLabel,
-                dir: MEMBERS_QR_CODE_PATH,
-                filename: $qrCodeLabel
-            );
-            deleteMembersQRCode($member['qr_code']);
-        } else {
-            $qrCode = $member['qr_code'];
-        }
-
-        if (!$this->memberModel->save([
-            'id'            => $member['id'],
-            'uid'           => $uid,
-            'first_name'    => $this->request->getVar('first_name'),
-            'last_name'     => $this->request->getVar('last_name'),
-            'email'         => $this->request->getVar('email'),
-            'phone'         => $this->request->getVar('phone'),
-            'address'       => $this->request->getVar('address'),
-            'date_of_birth' => $this->request->getVar('date_of_birth'),
-            'gender'        => $this->request->getVar('gender'),
-            'qr_code'       => $qrCode
-        ])) {
-            $data = [
-                'validation' => \Config\Services::validation(),
-                'oldInput'   => $this->request->getVar(),
-            ];
-
-            session()->setFlashdata(['msg' => 'Insert failed']);
-            return view('members/edit', $data);
-        }
-
-        session()->setFlashdata(['msg' => 'Update member successful']);
-        return redirect()->to('admin/members');
+    if ($lastMember && !empty($lastMember['member_no'])) {
+        // Ambil angka dari format PS-ASH000001
+        $lastNumber = intval(substr($lastMember['member_no'], 6));
+    } else {
+        $lastNumber = 0;
     }
 
-    /**
-     * Delete the designated resource object from the model
-     *
-     * @return mixed
-     */
+    return 'PS-ASH' . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
+}
+
+
     public function delete($uid = null)
     {
         $member = $this->memberModel->where('uid', $uid)->first();
-
-        if (empty($member)) {
+        if (!$member) {
             throw new PageNotFoundException('Member not found');
         }
 
@@ -358,7 +311,6 @@ class MembersController extends ResourceController
         }
 
         deleteMembersQRCode($member['qr_code']);
-
         session()->setFlashdata(['msg' => 'Member deleted successfully']);
         return redirect()->to('admin/members');
     }

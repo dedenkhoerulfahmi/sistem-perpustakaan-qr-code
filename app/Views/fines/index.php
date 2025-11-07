@@ -82,7 +82,6 @@ if (session()->getFlashdata('msg')) : ?>
         <tbody class="table-group-divider">
           <?php
           $i = 1 + ($itemPerPage * ($currentPage - 1));
-
           $now = Time::now(locale: 'id');
           ?>
           <?php if (empty($fines)) : ?>
@@ -90,8 +89,7 @@ if (session()->getFlashdata('msg')) : ?>
               <td class="text-center" colspan="7"><b>Tidak ada data</b></td>
             </tr>
           <?php endif; ?>
-          <?php
-          foreach ($fines as $key => $fine) :
+          <?php foreach ($fines as $key => $fine) :
             $loanReturnDate = Time::parse($fine['return_date'], locale: 'id');
             $loanDueDate = Time::parse($fine['due_date'], locale: 'id');
           ?>
@@ -100,7 +98,11 @@ if (session()->getFlashdata('msg')) : ?>
               <td>
                 <a href="<?= base_url("admin/members/{$fine['member_uid']}"); ?>" class="text-decoration-underline">
                   <p>
-                    <b><?= "{$fine['first_name']} {$fine['last_name']}"; ?></b>
+                    <b>
+  <?= $fine['first_name'] ?? '-' ?> 
+  (<?= $fine['class'] ?? '-' ?> - <?= $fine['jurusan'] ?? '-' ?>)
+</b>
+
                   </p>
                 </a>
               </td>

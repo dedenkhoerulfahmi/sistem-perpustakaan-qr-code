@@ -6,45 +6,71 @@ use CodeIgniter\Model;
 
 class LoanModel extends Model
 {
-    protected $DBGroup          = 'default';
     protected $table            = 'loans';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
-    protected $useSoftDeletes   = false;
+    protected $useSoftDeletes   = true; // ✅ Aktifkan soft delete
     protected $protectFields    = true;
-    protected $allowedFields    = [
+
+    protected $allowedFields = [
+        'uid',               // ✅ Tambahkan UID agar bisa disimpan
+        'loan_qr_code',
         'book_id',
-        'quantity',
         'member_id',
-        'uid',
         'loan_date',
-        'due_date',
         'return_date',
-        'qr_code'
+        'status',
+        'deadline'
     ];
 
-    // Dates
     protected $useTimestamps = true;
     protected $dateFormat    = 'datetime';
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
     protected $deletedField  = 'deleted_at';
 
-    // Validation
-    protected $validationRules      = [];
-    protected $validationMessages   = [];
-    protected $skipValidation       = false;
-    protected $cleanValidationRules = true;
+    /**
+     * Ambil detail peminjaman berdasarkan ID
+     */
+    public function getLoanWithDetails($id)
+    {
+        return $this->select('
+                loans.*,
+                members.uid as member_uid,
+                members.first_name,
+                members.kelas,
+                members.gender,
+                books.slug,
+                books.title,
+                books.year
+            ')
+            ->join('members', 'members.id = loans.member_id')
+            ->join('books', 'books.id = loans.book_id')
+            ->where('loans.id', $id)
+            ->where('loans.deleted_at', null) // ✅ Filter soft delete
+            ->first();
+    }
 
-    // Callbacks
-    protected $allowCallbacks = true;
-    protected $beforeInsert   = [];
-    protected $afterInsert    = [];
-    protected $beforeUpdate   = [];
-    protected $afterUpdate    = [];
-    protected $beforeFind     = [];
-    protected $afterFind      = [];
-    protected $beforeDelete   = [];
-    protected $afterDelete    = [];
+    /**
+     * Ambil semua data peminjaman dengan relasi anggota dan buku
+     */
+    public function getAllLoansWithDetails()
+    {
+        return $this->select('
+                loans.*,
+                members.uid as member_uid,
+                members.first_name,
+                members.kelas,
+                members.gender,
+                books.slug,
+                books.title,
+                books.year
+            ')
+            ->join('members', 'members.id = loans.member_id')
+            ->join('books', 'books.id = loans.book_id')
+            ->where('loans.deleted_at', null) // ✅ Filter soft delete
+            ->orderBy('loans.created_at', 'DESC')
+            ->findAll();
+    }
 }

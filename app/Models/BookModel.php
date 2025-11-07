@@ -13,16 +13,22 @@ class BookModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = true;
     protected $protectFields    = true;
+
     protected $allowedFields    = [
         'slug',
         'title',
         'author',
         'publisher',
-        'isbn',
         'year',
         'rack_id',
         'category_id',
         'book_cover',
+        'quantity',
+        'nomor_induk',
+        'tanggal_masuk',
+        'sumber',
+        'harga',
+        'kondisi'
     ];
 
     // Dates
@@ -48,4 +54,13 @@ class BookModel extends Model
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
+
+    /**
+     * Ambil data buku lengkap dengan nama kategori
+     */
+    public function getBooksWithCategory()
+    {
+        return $this->select('books.*, categories.name as category_name')
+            ->join('categories', 'categories.id = books.category_id', 'left');
+    }
 }

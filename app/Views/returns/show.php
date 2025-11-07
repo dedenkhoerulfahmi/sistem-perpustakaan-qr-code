@@ -54,19 +54,19 @@ if (session()->getFlashdata('msg')) : ?>
     </div>
     <h5 class="card-title fw-semibold mb-4">Detail Pengembalian</h5>
     <?php
-    $memberData = [
-      'Nama Lengkap'  => [$loan['first_name'] . ' ' . $loan['last_name']],
-      'Email'         => $loan['email'],
-      'Nomor telepon' => $loan['phone'],
-      'Alamat'        => $loan['address'],
-    ];
+$memberData = [
+  'Nama Lengkap'  => $loan['first_name'],   // tetap first_name
+  'Kelas'         => $loan['kelas'],        // ganti dari last_name → kelas
+  'Jurusan'       => $loan['jurusan'],      // ganti dari email → jurusan
+  'Alamat'        => $loan['address'],
+  'Jenis Kelamin' => $loan['gender'] ?? '-', // optional
+];
 
-    $bookData = [
-      'Judul buku'    => [$loan['title']],
-      'Pengarang'     => $loan['author'],
-      'Penerbit'      => $loan['publisher'],
-      'Rak'           => $loan['rack'],
-    ];
+$bookData = [
+  'Judul buku'    => $loan['title'],
+  'Penerbit'      => $loan['publisher'],
+  'Rak'           => $loan['rack'],
+];
     ?>
     <div class="row mb-3">
       <!-- member data -->

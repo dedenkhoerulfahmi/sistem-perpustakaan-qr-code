@@ -5,91 +5,105 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<a href="<?= base_url('admin/loans/new/books/search?member-uid=' . $member['uid']); ?>" class="btn btn-outline-primary mb-3">
-  <i class="ti ti-arrow-left"></i>
-  Kembali
+<a href="<?= base_url('admin/loans/new/books/search?member-uid=' . esc($member['uid'])); ?>" class="btn btn-outline-primary mb-3">
+  <i class="ti ti-arrow-left"></i> Kembali
 </a>
-<form action="<?= base_url('admin/loans'); ?>" method="post">
+
+<?php if (session()->getFlashdata('msg')) : ?>
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <?= session()->getFlashdata('msg'); ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+<?php endif; ?>
+
+<?php if (isset($validation) && $validation->getErrors()) : ?>
+  <div class="alert alert-warning">
+    <?= $validation->listErrors(); ?>
+  </div>
+<?php endif; ?>
+
+<form action="<?= base_url('admin/loans/new'); ?>" method="post">
   <?= csrf_field(); ?>
-  <input type="hidden" name="member_uid" value="<?= $member['uid']; ?>">
-  <!-- Member -->
-  <div class="card">
+  <input type="hidden" name="member_uid" value="<?= esc($member['uid']); ?>">
+
+  <!-- Data Anggota -->
+  <div class="card mb-4">
     <div class="card-body">
       <h5 class="card-title fw-semibold mb-3">Data Anggota</h5>
       <div class="row">
-        <div class="col-12 col-md-6 mb-3">
-          <label for="member_name" class="form-label">Nama anggota</label>
-          <input type="text" class="form-control" id="member_name" name="member_name" value="<?= "{$member['first_name']} {$member['last_name']}"; ?>" disabled>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Nama</label>
+          <input type="text" class="form-control" value="<?= esc($member['first_name']); ?>" readonly>
         </div>
-        <div class="col-12 col-md-6 mb-3">
-          <label for="member_email" class="form-label">Email</label>
-          <input type="text" class="form-control" id="member_email" name="member_email" value="<?= $member['email']; ?>" disabled>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Nomor Telepon</label>
+          <input type="text" class="form-control" value="<?= esc($member['phone'] ?? ''); ?>" readonly>
         </div>
-        <div class="col-12 col-md-6 mb-3">
-          <label for="member_phone" class="form-label">Nomor telepon</label>
-          <input type="text" class="form-control" id="member_phone" name="member_phone" value="<?= $member['phone']; ?>" disabled>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Alamat</label>
+          <input type="text" class="form-control" value="<?= esc($member['address'] ?? ''); ?>" readonly>
         </div>
-        <div class="col-12 col-md-6 mb-3">
-          <label for="member_address" class="form-label">Alamat</label>
-          <input type="text" class="form-control" id="member_address" name="member_address" value="<?= $member['address']; ?>" disabled>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Kelas & Jurusan</label>
+          <input type="text" class="form-control" value="<?= esc(($member['kelas'] ?? '') . ' - ' . ($member['jurusan'] ?? '')); ?>" readonly>
         </div>
       </div>
     </div>
   </div>
-  <!-- Loan -->
+
+  <!-- Form Peminjaman -->
   <div class="card">
     <div class="card-body">
       <h5 class="card-title fw-semibold mb-4">Form Peminjaman Buku</h5>
       <div class="row">
         <?php foreach ($books as $book) : ?>
-          <input type="hidden" name="slugs[]" value="<?= $book['slug']; ?>">
-          <div class="col-12">
-            <div class="card border border-2 border-primary overflow-hidden position-relative">
+          <input type="hidden" name="slugs[]" value="<?= esc($book['slug']); ?>">
+          <div class="col-12 mb-4">
+            <div class="card border border-primary position-relative">
               <div class="card-body">
-                <div class="position-absolute top-50 start-0 translate-middle-y border border-black me-4" style="background-image: url(<?= base_url(BOOK_COVER_URI) . $book['book_cover']; ?>); height: 160px; width: 120px; background-position: center; background-size: cover;">
+                <div class="position-absolute top-50 start-0 translate-middle-y border border-black me-4"
+                     style="background-image: url('<?= base_url(BOOK_COVER_URI . $book['book_cover']); ?>'); height: 160px; width: 120px; background-size: cover; background-position: center;">
                 </div>
-                <div class="row">
-                  <div class="col-5">
-                    <div class="d-flex align-items-start" style="margin-left: 100px;">
-                      <div>
-                        <p style="overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;"><b><?= "{$book['title']} ({$book['year']})"; ?></b></p>
-                        <p>Pengarang: <?= $book['author']; ?></p>
-                        <p>Penerbit: <?= $book['publisher']; ?></p>
-                      </div>
-                    </div>
+                <div class="row" style="margin-left: 130px;">
+                  <div class="col-md-5">
+                    <p><b><?= esc($book['title']) . ' (' . esc($book['year']) . ')'; ?></b></p>
+                    <p>Pengarang: <?= esc($book['author']); ?></p>
+                    <p>Penerbit: <?= esc($book['publisher']); ?></p>
                   </div>
-                  <div class="col-2">
-                    <label for="quantity-<?= $book['slug']; ?>" class="form-label">Jumlah</label>
-                    <input type="number" class="form-control <?php if ($validation->hasError("quantity-{$book['slug']}")) : ?>is-invalid<?php endif ?>" id="quantity-<?= $book['slug']; ?>" name="quantity-<?= $book['slug']; ?>" value="1" placeholder="max=10" max="<?= $book['stock'] < 10 ? $book['stock'] : 10; ?>" min="1" aria-describedby="bookStock" required>
+                  <div class="col-md-2">
+                    <label class="form-label">Jumlah</label>
+                    <input type="number"
+                           class="form-control <?= $validation->hasError('quantity[' . $book['slug'] . ']') ? 'is-invalid' : ''; ?>"
+                           name="quantity[<?= $book['slug']; ?>]"
+                           value="<?= esc($oldInput['quantity'][$book['slug']] ?? 1); ?>"
+                           min="1"
+                           max="<?= $book['stock'] < 10 ? $book['stock'] : 10; ?>"
+                           required>
                     <div class="invalid-feedback">
-                      <?= $validation->getError("quantity-{$book['slug']}"); ?>
+                      <?= $validation->getError('quantity[' . $book['slug'] . ']'); ?>
                     </div>
-                    <div id="bookStock" class="form-text">Stok: <?= $book['stock']; ?></div>
+                    <small class="form-text">Stok tersedia: <?= esc($book['stock']); ?></small>
                   </div>
-                  <div class="col-5">
-                    <label class="form-label">Lama meminjam</label>
-                    <div class="my-2 <?php if ($validation->hasError("duration-{$book['slug']}")) : ?>is-invalid<?php endif ?>">
-                      <div class="form-check form-check-inline">
-                        <input type="radio" class="form-check-input" id="7days-<?= $book['slug']; ?>" name="duration-<?= $book['slug']; ?>" value="7" <?= ($oldInput['duration-' . $book['slug']] ?? '') == '7' ? 'checked' : ''; ?> required>
-                        <label class="form-check-label" for="7days-<?= $book['slug']; ?>">
-                          7 hari
-                        </label>
-                      </div>
-                      <div class="form-check form-check-inline">
-                        <input type="radio" class="form-check-input" id="14days-<?= $book['slug']; ?>" name="duration-<?= $book['slug']; ?>" value="14" <?= ($oldInput['duration-' . $book['slug']] ?? '') == '14' ? 'checked' : ''; ?> required>
-                        <label class="form-check-label" for="14days-<?= $book['slug']; ?>">
-                          14 hari
-                        </label>
-                      </div>
-                      <div class="form-check form-check-inline">
-                        <input type="radio" class="form-check-input" id="30days-<?= $book['slug']; ?>" name="duration-<?= $book['slug']; ?>" value="30" <?= ($oldInput['duration-' . $book['slug']] ?? '') == '30' ? 'checked' : ''; ?> required>
-                        <label class="form-check-label" for="30days-<?= $book['slug']; ?>">
-                          30 hari
-                        </label>
-                      </div>
+                  <div class="col-md-5">
+                    <label class="form-label">Lama Meminjam</label>
+                    <div class="<?= $validation->hasError('duration[' . $book['slug'] . ']') ? 'is-invalid' : ''; ?>">
+                      <?php foreach ([1, 2, 3] as $day) : ?>
+                        <div class="form-check form-check-inline">
+                          <input type="radio"
+                                 class="form-check-input"
+                                 name="duration[<?= $book['slug']; ?>]"
+                                 id="duration-<?= $book['slug'] . '-' . $day; ?>"
+                                 value="<?= $day; ?>"
+                                 <?= (isset($oldInput['duration'][$book['slug']]) ? (($oldInput['duration'][$book['slug']] == $day) ? 'checked' : '') : (($day == 1) ? 'checked' : '')); ?>
+                                 required>
+                          <label class="form-check-label" for="duration-<?= $book['slug'] . '-' . $day; ?>">
+                            <?= $day; ?> hari
+                          </label>
+                        </div>
+                      <?php endforeach; ?>
                     </div>
                     <div class="invalid-feedback">
-                      <?= $validation->getError("duration-{$book['slug']}"); ?>
+                      <?= $validation->getError('duration[' . $book['slug'] . ']'); ?>
                     </div>
                   </div>
                 </div>
@@ -106,6 +120,6 @@
 
 <?= $this->section('scripts') ?>
 <script>
-
+// Tambahkan interaksi JS di sini jika diperlukan
 </script>
 <?= $this->endSection() ?>

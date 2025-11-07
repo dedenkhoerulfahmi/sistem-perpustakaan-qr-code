@@ -2,6 +2,50 @@
 
 <?= $this->section('head') ?>
 <title>Daftar Buku</title>
+<style>
+  .table-hover tbody tr:hover {
+    background-color: #f1f5f9;
+  }
+
+  .book-cover {
+    width: 70px;
+    height: 95px;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+
+  .text-quantity { 
+    font-weight: bold; 
+  }
+
+  /* Tambahin padding antar cell */
+  .table td, .table th {
+    padding: 12px 10px;
+    vertical-align: middle;
+    text-align: center;
+  }
+
+  /* Judul & Pengarang lebih rapih */
+  .table td p {
+    margin-bottom: 4px;
+  }
+
+  /* Atur lebar kolom */
+  .table th:nth-child(1), .table td:nth-child(1) { width: 40px; }   /* No */
+  .table th:nth-child(2), .table td:nth-child(2) { width: 90px; }   /* Sampul */
+  .table th:nth-child(3), .table td:nth-child(3) { width: 110px; }  /* Tanggal Masuk */
+  .table th:nth-child(4), .table td:nth-child(4) { width: 110px; }  /* Nomor Induk */
+  .table th:nth-child(5), .table td:nth-child(5) { min-width: 240px; text-align: left; } /* Judul & Pengarang */
+  .table th:nth-child(6), .table td:nth-child(6) { width: 140px; }  /* Kategori */
+  .table th:nth-child(7), .table td:nth-child(7) { width: 140px; }  /* Penerbit */
+  .table th:nth-child(8), .table td:nth-child(8) { width: 100px; }  /* Tahun Terbit */
+  .table th:nth-child(9), .table td:nth-child(9) { width: 120px; }  /* Sumber */
+  .table th:nth-child(10), .table td:nth-child(10) { width: 80px; }   /* Jumlah */
+  .table th:nth-child(11), .table td:nth-child(11) { width: 120px; } /* Harga */
+  .table th:nth-child(12), .table td:nth-child(12) { width: 100px; } /* Kondisi */
+  .table th:nth-child(13), .table td:nth-child(13) { width: 120px; } /* Aksi */
+</style>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -14,92 +58,118 @@
   </div>
 <?php endif; ?>
 
-<div class="card">
+<div class="card shadow-sm">
   <div class="card-body">
-    <div class="row mb-2">
-      <div class="col-12 col-lg-5">
-        <h5 class="card-title fw-semibold mb-4">
-          <?php if (isset($category)) : ?>
-            <?= 'Data Buku Kategori ' . $category; ?>
-          <?php elseif (isset($rack)) : ?>
-            <?= 'Data Buku Rak ' . $rack; ?>
-          <?php else : ?>
-            Data Buku
-          <?php endif; ?>
-        </h5>
+    <div class="row mb-3 align-items-center">
+      <div class="col-md-6">
+        <h5 class="card-title fw-bold mb-0">Data Buku</h5>
       </div>
-      <div class="col-12 col-lg-7">
-        <div class="d-flex gap-2 justify-content-md-end">
-          <div>
-            <form action="" method="get">
-              <div class="input-group mb-3">
-                <input type="text" class="form-control" name="search" value="<?= $search ?? ''; ?>" placeholder="Cari buku" aria-label="Cari buku" aria-describedby="searchButton">
-                <button class="btn btn-outline-secondary" type="submit" id="searchButton">Cari</button>
-              </div>
-            </form>
+      <div class="col-md-6 text-md-end mt-2 mt-md-0">
+        <form class="d-inline-block me-2" action="" method="get">
+          <div class="input-group">
+            <input type="text" class="form-control" name="search" value="<?= $search ?? ''; ?>" placeholder="Cari buku">
+            <button class="btn btn-outline-secondary" type="submit">Cari</button>
           </div>
-          <div>
-            <a href="<?= base_url('admin/books/new'); ?>" class="btn btn-primary py-2">
-              <i class="ti ti-plus"></i>
-              Tambah Data Buku
-            </a>
-          </div>
-        </div>
+        </form>
+        <a href="<?= base_url('admin/books/new'); ?>" class="btn btn-primary">
+          <i class="ti ti-plus"></i> Tambah Buku
+        </a>
       </div>
     </div>
-    <div class="overflow-x-scroll">
-      <table class="table table-hover table-striped">
+
+    <!-- Tombol Export -->
+    <div class="mb-3 text-md-end">
+      <a href="<?= base_url('admin/books/export-pdf'); ?>" class="btn btn-danger me-2">
+        <i class="ti ti-file-type-pdf"></i> Export PDF
+      </a>
+      <a href="<?= base_url('admin/books/export-excel'); ?>" class="btn btn-success">
+        <i class="ti ti-file-spreadsheet"></i> Export Excel
+      </a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover table-striped table-bordered align-middle">
         <thead class="table-light">
           <tr>
-            <th scope="col">#</th>
-            <th scope="col">Sampul</th>
-            <th scope="col">Judul</th>
-            <th scope="col">Kategori</th>
-            <th scope="col">Rak</th>
-            <th scope="col">Jumlah</th>
-            <th scope="col" class="text-center">Aksi</th>
+            <th>#</th>
+            <th>Sampul</th>
+            <th>Tanggal Masuk</th>
+            <th>Nomor Induk</th>
+            <th>Judul & Pengarang</th>
+            <th>Kategori</th>
+            <th>Penerbit</th>
+            <th>Tahun Terbit</th>
+            <th>Sumber</th>
+            <th>Jumlah</th>
+            <th>Harga</th>
+            <th>Kondisi</th>
+            <th>Aksi</th>
           </tr>
         </thead>
-        <tbody class="table-group-divider">
+        <tbody>
           <?php $i = 1 + ($itemPerPage * ($currentPage - 1)) ?>
           <?php if (empty($books)) : ?>
             <tr>
-              <td class="text-center" colspan="7"><b>Tidak ada data</b></td>
+              <td colspan="13" class="text-center fw-bold">Tidak ada data</td>
             </tr>
           <?php endif; ?>
           <?php foreach ($books as $book) : ?>
             <tr>
-              <th scope="row"><?= $i++; ?></th>
+              <th><?= $i++; ?></th>
+
+              <!-- Sampul -->
               <td>
                 <a href="<?= base_url("admin/books/{$book['slug']}"); ?>">
-                  <div class="d-flex justify-content-center" style="max-width: 150px; height: 120px;">
-                    <?php
-                    $coverImageFilePath = BOOK_COVER_URI . $book['book_cover'];
-                    ?>
-                    <img class="mx-auto mh-100" src="<?= base_url((!empty($book['book_cover']) && file_exists($coverImageFilePath)) ? $coverImageFilePath : BOOK_COVER_URI . DEFAULT_BOOK_COVER); ?>" alt="<?= $book['title']; ?>">
-                  </div>
+                  <?php $coverImageFilePath = BOOK_COVER_URI . $book['book_cover']; ?>
+                  <img src="<?= base_url((!empty($book['book_cover']) && file_exists($coverImageFilePath)) ? $coverImageFilePath : BOOK_COVER_URI . DEFAULT_BOOK_COVER); ?>" alt="<?= $book['title']; ?>" class="book-cover">
                 </a>
               </td>
-              <td>
-                <a href="<?= base_url("admin/books/{$book['slug']}"); ?>">
-                  <p class="text-primary-emphasis text-decoration-underline"><b><?= "{$book['title']} ({$book['year']})"; ?></b></p>
-                  <p class="text-body"><?= "Author: {$book['author']}"; ?></p>
+
+              <!-- Tanggal Masuk -->
+              <td><?= !empty($book['tanggal_masuk']) ? date('d-m-Y', strtotime($book['tanggal_masuk'])) : '-'; ?></td>
+
+              <!-- Nomor Induk -->
+              <td><?= $book['nomor_induk']; ?></td>
+
+              <!-- Judul & Pengarang -->
+              <td class="text-start">
+                <a href="<?= base_url("admin/books/{$book['slug']}"); ?>" class="text-decoration-none">
+                  <p class="mb-1 fw-bold text-primary"><?= $book['title']; ?></p>
+                  <p class="mb-0 text-secondary">Pengarang: <?= $book['author']; ?></p>
                 </a>
               </td>
-              <td><?= $book['category']; ?></td>
-              <td><?= $book['rack']; ?></td>
-              <td><?= $book['quantity']; ?></td>
+
+              <!-- Kategori -->
+              <td><?= esc($book['kategori'] ?? '-'); ?></td>
+
+              <!-- Penerbit -->
+              <td><?= $book['publisher']; ?></td>
+
+              <!-- Tahun Terbit -->
+              <td><?= $book['year']; ?></td>
+
+              <!-- Sumber -->
+              <td><?= $book['sumber']; ?></td>
+
+              <!-- Jumlah -->
+              <td class="text-quantity"><?= $book['quantity']; ?></td>
+
+              <!-- Harga -->
+              <td>Rp <?= number_format($book['harga'], 0, ',', '.'); ?></td>
+
+              <!-- Kondisi -->
+              <td><?= $book['kondisi']; ?></td>
+
+              <!-- Aksi -->
               <td>
-                <a href="<?= base_url("admin/books/{$book['slug']}/edit"); ?>" class="d-block btn btn-primary w-100 mb-2">
-                  <i class="ti ti-edit"></i>
-                  Edit
+                <a href="<?= base_url("admin/books/{$book['slug']}/edit"); ?>" class="btn btn-sm btn-primary mb-1 w-100">
+                  <i class="ti ti-edit"></i> Edit
                 </a>
-                <form action="<?= base_url("admin/books/{$book['slug']}"); ?>" method="post">
+                <form action="<?= base_url("admin/books/{$book['slug']}"); ?>" method="post" onsubmit="return confirm('Apakah Anda yakin ingin menghapus buku ini?');">
                   <?= csrf_field(); ?>
                   <input type="hidden" name="_method" value="DELETE">
-                  <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Are you sure?');">
-                    <i class="ti ti-trash"></i>
-                    Delete
+                  <button type="submit" class="btn btn-sm btn-danger w-100">
+                    <i class="ti ti-trash"></i> Delete
                   </button>
                 </form>
               </td>
@@ -108,6 +178,7 @@
         </tbody>
       </table>
     </div>
+
     <?= $pager->links('books', 'my_pager'); ?>
   </div>
 </div>

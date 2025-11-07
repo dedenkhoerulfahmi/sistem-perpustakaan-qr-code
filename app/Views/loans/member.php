@@ -1,44 +1,52 @@
-<?php if (empty($members)) : ?>
-  <h5 class="card-title fw-semibold my-4 text-danger">Anggota tidak ditemukan</h5>
-  <p class="text-danger"><?= $msg ?? ''; ?></p>
-<?php else : ?>
-  <h5 class="card-title fw-semibold my-4">Hasil pencarian anggota</h5>
-  <div class="overflow-x-scroll">
-    <table class="table table-hover table-striped">
+<?php if (!empty($msg)) : ?>
+  <p class="text-danger text-center"><?= esc($msg) ?></p>
+
+<?php elseif (!empty($members)) : ?>
+  <h5 class="fw-semibold mb-3">Hasil Pencarian Anggota</h5>
+  <div class="table-responsive">
+    <table class="table table-hover table-striped align-middle">
       <thead class="table-light">
         <tr>
-          <th scope="col">#</th>
-          <th scope="col">Nama lengkap</th>
-          <th scope="col">Email</th>
-          <th scope="col">Phone</th>
-          <th scope="col">Alamat</th>
-          <th scope="col">Jenis kelamin</th>
-          <th scope="col" class="text-center">Aksi</th>
+          <th>#</th>
+          <th>No Anggota</th>
+          <th>Nomor Induk</th>
+          <th>Nama</th>
+          <th>Kelas</th>
+          <th>Jurusan</th>
+          <th>Phone</th>
+          <th>Alamat</th>
+          <th>Jenis Kelamin</th>
+          <th class="text-center">Aksi</th>
         </tr>
       </thead>
-      <tbody class="table-group-divider">
-        <?php $i = 1 ?>
-        <?php foreach ($members as $key => $member) : ?>
-          <?php if (!$member['deleted_at']) : ?>
-            <tr>
-              <th scope="row"><?= $i++; ?></th>
-              <td>
-                <b><?= $member['first_name'] . ' ' . $member['last_name']; ?></b>
-              </td>
-              <td><?= $member['email']; ?></td>
-              <td><?= $member['phone']; ?></td>
-              <td><?= $member['address']; ?></td>
-              <td><?= $member['gender']; ?></td>
-              <td style="width: 120px;" class="text-center">
-                <a href="<?= base_url("admin/loans/new/books/search?member-uid={$member['uid']}"); ?>" class="btn btn-primary mb-2">
-                  <i class="ti ti-check"></i>
-                  Pilih
-                </a>
-              </td>
-            </tr>
-          <?php endif; ?>
+      <tbody>
+        <?php $i = 1; foreach ($members as $member) : ?>
+          <tr>
+            <td><?= $i++ ?></td>
+            <td>
+              <span class="badge bg-secondary">
+                <?= esc($member['member_no'] ?? '-') ?>
+              </span>
+            </td>
+            <td><?= esc($member['nomor_induk'] ?? '-') ?></td>
+            <td><b><?= esc($member['first_name'] ?? '') ?> <?= esc($member['last_name'] ?? '') ?></b></td>
+            <td><?= esc($member['kelas'] ?? '-') ?></td>
+            <td><?= esc($member['jurusan'] ?? '-') ?></td>
+            <td><?= esc($member['phone'] ?? '-') ?></td>
+            <td><?= esc($member['address'] ?? '-') ?></td>
+            <td><?= esc($member['gender'] ?? '-') ?></td>
+            <td class="text-center">
+              <a href="<?= base_url("admin/loans/new/books/search?member-uid=" . urlencode($member['uid'])) ?>" 
+                 class="btn btn-sm btn-primary">
+                Pilih
+              </a>
+            </td>
+          </tr>
         <?php endforeach; ?>
       </tbody>
     </table>
   </div>
+
+<?php else : ?>
+  <p class="text-warning text-center">⚠ Tidak ada data anggota ditemukan</p>
 <?php endif; ?>

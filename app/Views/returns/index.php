@@ -85,7 +85,7 @@ if (session()->getFlashdata('msg')) : ?>
               <td>
                 <a href="<?= base_url("admin/members/{$loan['member_uid']}"); ?>" class="text-primary-emphasis text-decoration-underline">
                   <p>
-                    <b><?= "{$loan['first_name']} {$loan['last_name']}"; ?></b>
+                    <b><?= "{$loan['first_name']} ({$loan['kelas']})"; ?></b>
                   </p>
                 </a>
               </td>

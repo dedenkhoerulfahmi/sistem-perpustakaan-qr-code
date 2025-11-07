@@ -7,7 +7,7 @@
 <?= $this->section('content') ?>
 <style>
   #qr-code {
-    background-image: url(<?= base_url(LOANS_QR_CODE_URI . $loan['loan_qr_code']); ?>);
+    background-image: url(<?= base_url(LOANS_QR_CODE_URI . $loan['qr_code']); ?>);
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -62,19 +62,23 @@ if (session()->getFlashdata('msg')) : ?>
     </div>
     <h5 class="card-title fw-semibold mb-4">Detail Peminjaman</h5>
     <?php
-    $memberData = [
-      'Nama Lengkap'  => [$loan['first_name'] . ' ' . $loan['last_name']],
-      'Email'         => $loan['email'],
-      'Nomor telepon' => $loan['phone'],
-      'Alamat'        => $loan['address'],
-    ];
+$memberData = [
+  'Nama Lengkap'   => $loan['first_name'],
+  'Kelas'          => $loan['kelas'],
+  'Jurusan'        => $loan['jurusan'],
+  'Nomor Telepon'  => $loan['phone'] ?? '-',
+  'Alamat'         => $loan['address'] ?? '-',
+  'Tanggal Lahir'  => $loan['date_of_birth'] ?? '-',
+  'Jenis Kelamin'  => $loan['gender'] ?? '-',
+];
+  $bookData = [
+  'Judul Buku'   => $loan['title'] ?? '-',
+  'Pengarang'    => $loan['author'] ?? '-',      // sesuai DB
+  'Penerbit'     => $loan['publisher'] ?? '-',   // sesuai DB
+  'Tahun Terbit' => $loan['year'] ?? '-',        // ada di DB
+  'Rak'          => $loan['rack_id'] ?? '-',     // ganti dari rack → rack_id
+];
 
-    $bookData = [
-      'Judul buku'    => [$loan['title']],
-      'Pengarang'     => $loan['author'],
-      'Penerbit'      => $loan['publisher'],
-      'Rak'           => $loan['rack']
-    ];
     ?>
     <div class="row mb-3">
       <!-- member data -->
