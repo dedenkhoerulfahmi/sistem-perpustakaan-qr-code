@@ -1,4 +1,4 @@
-# BukuHub - Sistem Perpustakaan QR Code
+# BukuHub - Sistem Perpustakaan
 
 [![Continuous Integration](https://github.com/ikhsan3adi/sistem-perpustakaan-qr-code/actions/workflows/ci.yml/badge.svg)](https://github.com/ikhsan3adi/sistem-perpustakaan-qr-code/actions/workflows/ci.yml)
 
@@ -10,8 +10,6 @@
 >
 > - Login, Register & Magic login link (via Email)
 > - Dashboard admin
-> - QR Code anggota
-> - QR Code peminjaman
 > - Sistem denda
 > - Dan lainnya.
 >
