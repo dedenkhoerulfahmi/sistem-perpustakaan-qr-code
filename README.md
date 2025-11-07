@@ -34,47 +34,6 @@ Versi ini fokus pada alur manual (tanpa otomatisasi QR code). Sistem siap dijala
 Lihat folder `screenshots/` untuk beberapa contoh tampilan.
 Jika ingin menampilkan screenshot di README, letakkan file gambar di `screenshots/` dan ganti path di atas.
 
-## Prasyarat (Windows / XAMPP)
-
-- PHP 7.4+ atau PHP 8.x
-- Composer
-- XAMPP (Apache + MySQL) atau stack serupa
-
-## Cepat: Cara menjalankan di Windows (XAMPP)
-
-1. Salin/clone proyek ke folder htdocs XAMPP, contoh:
-
-```powershell
-# contoh: jalankan di PowerShell
-cd C:\xampp\htdocs
-git clone <repo-url> sistem-perpustakaan-qr-code
-cd sistem-perpustakaan-qr-code
-```
-
-2. Install dependensi PHP dengan Composer (di direktori proyek):
-
-```powershell
-composer install
-```
-
-3. Siapkan database:
-
-- Buat database baru melalui phpMyAdmin (mis. nama: perpustakaan).
-- Jika ada file SQL di folder `database/` atau `builds/`, import file tersebut ke database.
-
-4. Konfigurasi environment:
-
-- Salin `app/Config/Database.php` atau sesuaikan `app/Config/App.php` sesuai kebutuhan (set baseURL).
-- Pastikan folder `writable/` dan `writable/uploads/` dapat ditulis oleh webserver.
-
-5. Jalankan XAMPP (Apache + MySQL) dan buka aplikasi di browser:
-
-```
-http://localhost/sistem-perpustakaan-qr-code/public
-```
-
-Catatan: Jika menempatkan proyek langsung di root htdocs, sesuaikan URL sesuai folder.
-
 ## Struktur singkat proyek
 
 - `app/` - kode aplikasi (Controllers, Models, Config)
