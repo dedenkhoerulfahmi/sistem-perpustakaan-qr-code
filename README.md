@@ -1,4 +1,7 @@
-# BukuHub - Sistem Perpustakaan
+#🎓 Sistem Informasi Perpustakaan
+Proyek Kerja Praktik – SMK AS-SHOFA
+
+Oleh: Deden Khoerul Fahmi & Kusmawan
 
 [![Continuous Integration](https://github.com/ikhsan3adi/sistem-perpustakaan-qr-code/actions/workflows/ci.yml/badge.svg)](https://github.com/ikhsan3adi/sistem-perpustakaan-qr-code/actions/workflows/ci.yml)
 
