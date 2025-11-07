@@ -13,6 +13,29 @@ Sistem Informasi Perpustakaan ini merupakan hasil dari kegiatan Kerja Praktik ya
 
 Aplikasi ini dirancang dengan tampilan modern, mudah dipahami, dan responsif. Sistem dibangun menggunakan framework CodeIgniter 4, dikombinasikan dengan Bootstrap 5 dan template admin Modernize. Sistem ini tidak menggunakan fitur QR Code, seluruh proses dilakukan melalui input dan pengelolaan data secara manual melalui antarmuka web.
 
+Fitur Aplikasi
+
+Beberapa fitur utama yang tersedia dalam sistem ini meliputi:
+
+Login & Autentikasi Pengguna
+
+Dashboard Admin
+
+Manajemen Data Buku
+
+Manajemen Data Anggota
+
+Peminjaman Buku
+
+Pengembalian Buku
+
+Pencatatan & Perhitungan Denda
+
+Absensi Pengunjung
+
+Laporan Aktivitas Perpustakaan
+
+Tampilan Antarmuka Modern & Responsif
 
 ## Authors
 
