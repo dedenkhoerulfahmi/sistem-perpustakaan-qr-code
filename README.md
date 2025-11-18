@@ -1,6 +1,6 @@
 # Sistem Informasi Perpustakaan (Kerja Praktik)
 
-![Project Banner](screenshots/cover.png)
+![Project Banner](C:\Users\ACER\Pictures\Screenshots/home.png)
 
 Dikerjakan oleh: Deden Khoerul Fahmi & Kusmawan
 
